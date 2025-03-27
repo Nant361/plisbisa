@@ -3,14 +3,21 @@ service:
   app: telegram-scraper-bot
   type: web
   ports:
-    - port: 8080
+    - port: 8000
       protocol: http
+  healthchecks:
+    - type: tcp
+      port: 8000
+      grace_period: 5s
+      interval: 30s
+      timeout: 5s
+      restart_limit: 3
   resources:
     cpus: 1
     memory: 512Mi
   routes:
     - path: /
-      port: 8080
+      port: 8000
   deployments:
     - build:
         builder: buildpack
