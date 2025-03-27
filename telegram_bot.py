@@ -807,8 +807,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # Check for forbidden student (except for admin)
             if user_id != 5705926766:
                 if (mahasiswa.get('nm_pd', '').lower() == "azmi ridho rinanta" or 
-                    mahasiswa.get('nipd', '') == "21523023" or 
-                    mahasiswa.get('namapt', '').lower() == "universitas islam indonesia"):
+                    mahasiswa.get('nipd', '') == "21523023"):
                     await query.message.edit_text(
                         "⚠️ *PERINGATAN!*\n\n"
                         "Permintaan terlarang untuk lord kami, dilarang mencarinya atau anda terkena ban permanen !",
@@ -844,8 +843,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # Check for forbidden student in detail (except for admin)
             if user_id != 5705926766:
                 if (detail.get('dataumum', {}).get('nm_pd', '').lower() == "azmi ridho rinanta" or 
-                    detail.get('dataumum', {}).get('nipd', '') == "21523023" or 
-                    detail.get('dataumum', {}).get('namapt', '').lower() == "universitas islam indonesia"):
+                    detail.get('dataumum', {}).get('nipd', '') == "21523023"):
                     await loading_message.edit_text(
                         "⚠️ *PERINGATAN!*\n\n"
                         "Permintaan terlarang untuk lord kami, dilarang mencarinya atau anda terkena ban permanen !",
@@ -884,8 +882,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # Check for forbidden student in detail (except for admin)
             if user_id != 5705926766:
                 if (detail.get('dataumum', {}).get('nm_pd', '').lower() == "azmi ridho rinanta" or 
-                    detail.get('dataumum', {}).get('nipd', '') == "21523023" or 
-                    detail.get('dataumum', {}).get('namapt', '').lower() == "universitas islam indonesia"):
+                    detail.get('dataumum', {}).get('nipd', '') == "21523023"):
                     await query.message.edit_text(
                         "⚠️ *PERINGATAN!*\n\n"
                         "Permintaan terlarang untuk lord kami, dilarang mencarinya atau anda terkena ban permanen !",
