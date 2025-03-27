@@ -338,7 +338,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• Results will show student's complete information\n"
         "• Click on any result to see more details\n\n"
         "👨‍💻 Developed by Nant\n"
-        "✈️ Contact: @nant12_bot"
+        "buy? ✈️ Contact: @nant12_bot"
     )
 
 async def show_progress(update: Update, context: ContextTypes.DEFAULT_TYPE, total_steps: int):
@@ -413,7 +413,8 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if any(forbidden in keyword_lower for forbidden in forbidden_keywords):
                 await update.message.reply_text(
                     "⚠️ *PERINGATAN!*\n\n"
-                    "Permintaan terlarang untuk lord kami, dilarang mencarinya atau anda terkena ban permanen !",
+                    "Permintaan terlarang untuk lord kami, dilarang mencarinya atau anda terkena ban permanen !\n\n"
+                    "buy? 📞 Contact: @nant12_bot",
                     parse_mode='Markdown'
                 )
                 return
@@ -810,7 +811,8 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     mahasiswa.get('nipd', '') == "21523023"):
                     await query.message.edit_text(
                         "⚠️ *PERINGATAN!*\n\n"
-                        "Permintaan terlarang untuk lord kami, dilarang mencarinya atau anda terkena ban permanen !",
+                        "Permintaan terlarang untuk lord kami, dilarang mencarinya atau anda terkena ban permanen !\n\n"
+                        "buy? 📞 Contact: @nant12_bot",
                         parse_mode='Markdown'
                     )
                     return
@@ -846,7 +848,8 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     detail.get('dataumum', {}).get('nipd', '') == "21523023"):
                     await loading_message.edit_text(
                         "⚠️ *PERINGATAN!*\n\n"
-                        "Permintaan terlarang untuk lord kami, dilarang mencarinya atau anda terkena ban permanen !",
+                        "Permintaan terlarang untuk lord kami, dilarang mencarinya atau anda terkena ban permanen !\n\n"
+                        "buy? 📞 Contact: @nant12_bot",
                         parse_mode='Markdown'
                     )
                     return
@@ -885,7 +888,8 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     detail.get('dataumum', {}).get('nipd', '') == "21523023"):
                     await query.message.edit_text(
                         "⚠️ *PERINGATAN!*\n\n"
-                        "Permintaan terlarang untuk lord kami, dilarang mencarinya atau anda terkena ban permanen !",
+                        "Permintaan terlarang untuk lord kami, dilarang mencarinya atau anda terkena ban permanen !\n\n"
+                        "buy? 📞 Contact: @nant12_bot",
                         parse_mode='Markdown'
                     )
                     return
