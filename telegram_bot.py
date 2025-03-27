@@ -427,101 +427,163 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await send_notification_to_admin(user_id, username, f"/cari {keyword}")
         
+        # Buat maksimal waktu pencarian total
+        total_search_timeout = 30.0  # 30 detik maksimum untuk seluruh operasi
+        
         try:
             # Show initial progress bar
             progress_message = await show_progress(update, context, 5)
             
             # Update progress to 20%
             await update_progress(progress_message, 2)
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.3)
             
             # Clear old tokens and data
             context.user_data.clear()
             context.user_data['search_history'] = [keyword]
             
             # Login ke PDDikti untuk user ini (fresh login)
-            await update_progress(progress_message, 4)
+            await update_progress(progress_message, 3)
             print(f"\n=== Starting fresh login for user {user_id} ===")
             
-            # Buat session baru untuk setiap user dengan timeout yang lebih lama
-            timeout = aiohttp.ClientTimeout(total=60)  # 60 detik timeout
+            # Buat session baru untuk setiap user dengan timeout yang lebih pendek
+            timeout = aiohttp.ClientTimeout(total=20)  # 20 detik timeout untuk session
             session = aiohttp.ClientSession(timeout=timeout)
             context.user_data['session'] = session  # Simpan session di context user
             
             try:
-                # Login dengan session baru
-                i_iduser, id_organisasi, pm_token = await login_pddikti(session)
-                if not i_iduser or not id_organisasi or not pm_token:
-                    raise Exception("Login gagal")
-                    
-                print(f"Login successful for user {user_id}")
-                await asyncio.sleep(0.5)
+                # Pakai timeout untuk seluruh operasi search
+                search_task = asyncio.create_task(perform_search(update, context, keyword, user_id, session, progress_message))
+                search_result = await asyncio.wait_for(search_task, timeout=total_search_timeout)
                 
-                # Update progress to 60%
-                await update_progress(progress_message, 6)
-                
-                # Cari mahasiswa dengan token baru
-                print(f"Searching with fresh token for user {user_id}")
-                mahasiswa_list = await search_student(keyword, i_iduser, pm_token, session)
-                
-                if not mahasiswa_list:
-                    await progress_message.edit_text("❌ Tidak ada mahasiswa ditemukan.")
-                    return
-
-                # Update progress to 100% after finding students
-                await update_progress(progress_message, 10)
-                await asyncio.sleep(0.5)
-
-                # Buat keyboard inline untuk pilihan mahasiswa
-                keyboard = []
-                for idx, mhs in enumerate(mahasiswa_list, 1):
-                    nama_pt = mhs['namapt']
-                    nama_pt = nama_pt.replace('Universitas', 'Univ.')
-                    nama_pt = nama_pt.replace('Institut', 'Inst.')
-                    nama_pt = nama_pt.replace('Sekolah Tinggi', 'ST')
-                    nama_pt = nama_pt.replace('Politeknik', 'Polit.')
-                    
-                    if len(nama_pt) > 20:
-                        nama_pt = nama_pt[:17] + "..."
-                    
-                    button_text = f"{idx}. {mhs['nm_pd']} ({nama_pt})"
-                    
-                    keyboard.append([
-                        InlineKeyboardButton(
-                            button_text,
-                            callback_data=f"mhs_{idx}"
-                        )
-                    ])
-                
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                
-                # Simpan data mahasiswa dan token baru di context user ini
-                context.user_data['mahasiswa_list'] = mahasiswa_list
-                context.user_data['i_iduser'] = i_iduser
-                context.user_data['id_organisasi'] = id_organisasi
-                context.user_data['pm_token'] = pm_token
-
+            except asyncio.TimeoutError:
+                # Handle timeout untuk seluruh operasi
+                logger.error(f"Search operation timed out after {total_search_timeout} seconds for keyword: {keyword}")
                 await progress_message.edit_text(
-                    "✅ Daftar Mahasiswa Ditemukan:\n"
-                    "Silakan pilih mahasiswa untuk melihat detail:",
-                    reply_markup=reply_markup
+                    "⌛ Timeout: Pencarian memakan waktu terlalu lama.\n\n"
+                    "Server PDDikti mungkin sedang sibuk atau lambat merespons. "
+                    "Silakan coba lagi setelah beberapa saat."
                 )
+                # Pastikan session dibersihkan
+                await cleanup_user_session(context)
                 
-            finally:
-                # Jangan tutup session di sini, biarkan tetap terbuka untuk digunakan nanti
-                pass
+            except Exception as e:
+                logger.error(f"Error during search operation: {str(e)}", exc_info=True)
+                await progress_message.edit_text(f"❌ Terjadi kesalahan: {str(e)}")
+                # Pastikan session dibersihkan
+                await cleanup_user_session(context)
                 
         except Exception as e:
-            logger.error(f"Error in search: {str(e)}")
-            await progress_message.edit_text(f"❌ Terjadi kesalahan: {str(e)}")
-            # Tutup session jika terjadi error
+            logger.error(f"Error in search: {str(e)}", exc_info=True)
+            await update.message.reply_text(f"❌ Terjadi kesalahan: {str(e)}")
+            # Pastikan session dibersihkan
             if 'session' in context.user_data:
                 await context.user_data['session'].close()
                 del context.user_data['session']
 
     except Exception as e:
-        logger.error(f"Error in search: {str(e)}")
+        logger.error(f"Error in search command: {str(e)}", exc_info=True)
         await update.message.reply_text(f"❌ Terjadi kesalahan: {str(e)}")
+
+# Fungsi baru untuk memisahkan operasi pencarian
+async def perform_search(update, context, keyword, user_id, session, progress_message):
+    """Perform search operation with proper error handling"""
+    try:
+        # Login dengan session baru
+        i_iduser, id_organisasi, pm_token = await login_pddikti(session)
+        if not i_iduser or not id_organisasi or not pm_token:
+            raise Exception("Login gagal, server PDDikti mungkin sedang sibuk. Silakan coba lagi.")
+            
+        print(f"Login successful for user {user_id}")
+        await asyncio.sleep(0.3)
+        
+        # Update progress to 60%
+        await update_progress(progress_message, 6)
+        
+        # Cari mahasiswa dengan token baru
+        print(f"Searching with fresh token for user {user_id}")
+        mahasiswa_list = await search_student(keyword, i_iduser, pm_token, session)
+        
+        if not mahasiswa_list:
+            await progress_message.edit_text(
+                "❌ Tidak ada mahasiswa ditemukan.\n\n"
+                "Saran:\n"
+                "• Periksa ejaan nama/NIM\n"
+                "• Coba gunakan nama lengkap\n"
+                "• Pastikan data mahasiswa terdaftar di PDDikti"
+            )
+            return False
+
+        # Update progress to 100% after finding students
+        await update_progress(progress_message, 10)
+        await asyncio.sleep(0.3)
+
+        # Buat keyboard inline untuk pilihan mahasiswa
+        keyboard = []
+        for idx, mhs in enumerate(mahasiswa_list, 1):
+            nama_pt = mhs.get('namapt', 'Unknown')
+            if nama_pt != 'Unknown':
+                nama_pt = nama_pt.replace('Universitas', 'Univ.')
+                nama_pt = nama_pt.replace('Institut', 'Inst.')
+                nama_pt = nama_pt.replace('Sekolah Tinggi', 'ST')
+                nama_pt = nama_pt.replace('Politeknik', 'Polit.')
+                
+                if len(nama_pt) > 20:
+                    nama_pt = nama_pt[:17] + "..."
+            
+            nm_pd = mhs.get('nm_pd', 'Unknown')
+            button_text = f"{idx}. {nm_pd} ({nama_pt})"
+            
+            keyboard.append([
+                InlineKeyboardButton(
+                    button_text,
+                    callback_data=f"mhs_{idx}"
+                )
+            ])
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        # Simpan data mahasiswa dan token baru di context user ini
+        context.user_data['mahasiswa_list'] = mahasiswa_list
+        context.user_data['i_iduser'] = i_iduser
+        context.user_data['id_organisasi'] = id_organisasi
+        context.user_data['pm_token'] = pm_token
+
+        await progress_message.edit_text(
+            "✅ Daftar Mahasiswa Ditemukan:\n"
+            "Silakan pilih mahasiswa untuk melihat detail:",
+            reply_markup=reply_markup
+        )
+        
+        return True
+        
+    except aiohttp.ClientError as e:
+        logger.error(f"Network error during search: {str(e)}")
+        await progress_message.edit_text(
+            "❌ Koneksi ke server PDDikti gagal.\n\n"
+            "Kemungkinan penyebab:\n"
+            "• Server PDDikti sedang down atau maintenance\n"
+            "• Koneksi internet tidak stabil\n\n"
+            "Silakan coba lagi setelah beberapa saat."
+        )
+        return False
+        
+    except asyncio.TimeoutError:
+        logger.error(f"Timeout during detailed search operation")
+        await progress_message.edit_text(
+            "⌛ Timeout: Pencarian memakan waktu terlalu lama.\n\n"
+            "Server PDDikti mungkin sedang sibuk. "
+            "Silakan coba lagi setelah beberapa saat."
+        )
+        return False
+        
+    except Exception as e:
+        logger.error(f"Error in perform_search: {str(e)}", exc_info=True)
+        await progress_message.edit_text(
+            f"❌ Terjadi kesalahan: {str(e)}\n\n"
+            "Silakan coba lagi setelah beberapa saat."
+        )
+        return False
 
 async def show_loading(update: Update, context: ContextTypes.DEFAULT_TYPE, message: str):
     """Show loading animation"""
