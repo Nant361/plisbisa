@@ -428,7 +428,7 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_notification_to_admin(user_id, username, f"/cari {keyword}")
         
         # Buat maksimal waktu pencarian total
-        total_search_timeout = 30.0  # 30 detik maksimum untuk seluruh operasi
+        total_search_timeout = 300.0  # 5 menit maksimum untuk seluruh operasi
         
         try:
             # Show initial progress bar
@@ -446,8 +446,8 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update_progress(progress_message, 3)
             print(f"\n=== Starting fresh login for user {user_id} ===")
             
-            # Buat session baru untuk setiap user dengan timeout yang lebih pendek
-            timeout = aiohttp.ClientTimeout(total=20)  # 20 detik timeout untuk session
+            # Buat session baru untuk setiap user dengan timeout yang lebih panjang
+            timeout = aiohttp.ClientTimeout(total=300)  # 5 menit timeout untuk session
             session = aiohttp.ClientSession(timeout=timeout)
             context.user_data['session'] = session  # Simpan session di context user
             

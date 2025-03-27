@@ -112,7 +112,7 @@ async def search_student(keyword, i_iduser, pm_token, session):
         try:
             response = await asyncio.wait_for(
                 session.post(search_url, data=search_data, headers={"User-Agent": "Mozilla/5.0"}),
-                timeout=60.0
+                timeout=240.0
             )
             
             if response.status == 200:
@@ -158,7 +158,7 @@ async def get_student_detail(id_reg_pd, i_iduser, id_organisasi, pm_token, sessi
                     "Referer": "https://pddikti-admin.kemdikbud.go.id/",
                     "Content-Type": "application/json"
                 }),
-                timeout=60.0
+                timeout=240.0
             )
             
             if response.status == 200:
