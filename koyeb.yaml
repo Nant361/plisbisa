@@ -6,8 +6,9 @@ service:
     - port: 8000
       protocol: http
   healthchecks:
-    - type: tcp
+    - type: http
       port: 8000
+      path: /health
       grace_period: 5s
       interval: 30s
       timeout: 5s

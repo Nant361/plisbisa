@@ -8,6 +8,8 @@ import sys
 import socket
 import threading
 import os
+import http.server
+import socketserver
 
 # Setup logging
 logging.basicConfig(
@@ -16,30 +18,35 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Simple HTTP Handler for health checks
+class HealthCheckHandler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/health' or self.path == '/':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'OK')
+        else:
+            self.send_response(404)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'Not Found')
+    
+    # Suppress log messages
+    def log_message(self, format, *args):
+        return
+
 def run_health_check_server():
-    """Run a simple TCP server for health checks"""
+    """Run a simple TCP and HTTP server for health checks"""
     try:
         # Get port from environment variable or default to 8000
         port = int(os.environ.get('PORT', 8000))
         logger.info(f"Starting health check server on port {port}...")
         
-        # Create a socket server
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server.bind(('0.0.0.0', port))
-        server.listen(5)
-        
-        while True:
-            try:
-                # Accept connection
-                client, addr = server.accept()
-                logger.debug(f"Health check received from {addr}")
-                
-                # Send a simple response and close
-                client.send(b'OK')
-                client.close()
-            except Exception as e:
-                logger.error(f"Error in health check server: {str(e)}")
+        # Create an HTTP server
+        httpd = socketserver.TCPServer(("", port), HealthCheckHandler)
+        logger.info(f"HTTP health check server started at port {port}")
+        httpd.serve_forever()
                 
     except Exception as e:
         logger.error(f"Failed to start health check server: {str(e)}")
