@@ -1,0 +1,27 @@
+name: telegram-scraper-bot
+service:
+  app: telegram-scraper-bot
+  type: web
+  ports:
+    - port: 8080
+      protocol: http
+  resources:
+    cpus: 1
+    memory: 512Mi
+  routes:
+    - path: /
+      port: 8080
+  deployments:
+    - build:
+        builder: buildpack
+        buildpacks:
+          - heroku/python
+      env:
+        - key: TELEGRAM_BOT_TOKEN
+          value: "${TELEGRAM_BOT_TOKEN}"
+        - key: ADMIN_BOT_TOKEN 
+          value: "${ADMIN_BOT_TOKEN}"
+        - key: ADMIN_CHAT_ID
+          value: "${ADMIN_CHAT_ID}"
+        - key: ADMIN_ID
+          value: "${ADMIN_ID}" 
