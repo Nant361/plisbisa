@@ -66,6 +66,9 @@ def run_admin_bot():
     """Run the admin bot"""
     while True:  # Outer loop for continuous operation
         try:
+            # Create a new event loop for each restart
+            asyncio.set_event_loop(asyncio.new_event_loop())
+            
             logger.info("Starting Admin Bot...")
             application = (
                 Application.builder()
@@ -117,6 +120,15 @@ def run_admin_bot():
                 logger.error("Max retries reached. Restarting bot...")
                 time.sleep(RETRY_DELAY)
                 continue
+        except RuntimeError as e:
+            if "Event loop is closed" in str(e):
+                logger.warning("Event loop was closed. Creating a new one.")
+                time.sleep(1)  # Brief pause before restart
+                continue
+            else:
+                logger.error(f"Runtime error in Admin Bot: {str(e)}", exc_info=True)
+                time.sleep(RETRY_DELAY)
+                continue
         except Exception as e:
             logger.error(f"Unexpected error in Admin Bot: {str(e)}", exc_info=True)
             time.sleep(RETRY_DELAY)
@@ -126,6 +138,9 @@ def run_student_bot():
     """Run the student search bot"""
     while True:  # Outer loop for continuous operation
         try:
+            # Create a new event loop for each restart
+            asyncio.set_event_loop(asyncio.new_event_loop())
+            
             logger.info("Starting Student Search Bot...")
             application = (
                 Application.builder()
@@ -181,6 +196,15 @@ def run_student_bot():
                     break
             if retry_count >= MAX_RETRIES:
                 logger.error("Max retries reached. Restarting bot...")
+                time.sleep(RETRY_DELAY)
+                continue
+        except RuntimeError as e:
+            if "Event loop is closed" in str(e):
+                logger.warning("Event loop was closed. Creating a new one.")
+                time.sleep(1)  # Brief pause before restart
+                continue
+            else:
+                logger.error(f"Runtime error in Student Search Bot: {str(e)}", exc_info=True)
                 time.sleep(RETRY_DELAY)
                 continue
         except Exception as e:
