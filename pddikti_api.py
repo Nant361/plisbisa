@@ -13,7 +13,7 @@ async def login_pddikti(session):
         logger.info("Starting PDDikti login process")
         # STEP 1: GET /signin
         await session.get(
-            "https://pddikti-admin.kemdikbud.go.id/signin",
+            "https://pddikti-admin.kemdiktisaintek.go.id/signin",
             headers={"User-Agent": "Mozilla/5.0"},
             timeout=30
         )
@@ -25,11 +25,11 @@ async def login_pddikti(session):
             'data[issso]': 'false'
         }
         login_response = await session.post(
-            "https://api-pddikti-admin.kemdikbud.go.id/login/login",
+            "https://api-pddikti-admin.kemdiktisaintek.go.id/login/login",
             data=login_data,
             headers={
-                "Origin": "https://pddikti-admin.kemdikbud.go.id",
-                "Referer": "https://pddikti-admin.kemdikbud.go.id/",
+                "Origin": "https://pddikti-admin.kemdiktisaintek.go.id",
+                "Referer": "https://pddikti-admin.kemdiktisaintek.go.id/",
                 "User-Agent": "Mozilla/5.0"
             },
             timeout=30
@@ -43,14 +43,14 @@ async def login_pddikti(session):
             
             # STEP 3: GET /isverified
             await session.get(
-                f"https://api-pddikti-admin.kemdikbud.go.id/isverified/{i_iduser}",
+                f"https://api-pddikti-admin.kemdiktisaintek.go.id/isverified/{i_iduser}",
                 headers={"User-Agent": "Mozilla/5.0"},
                 timeout=30
             )
             
             # STEP 4: POST /login/roles/1?login=adm
             await session.post(
-                "https://api-pddikti-admin.kemdikbud.go.id/login/roles/1?login=adm",
+                "https://api-pddikti-admin.kemdiktisaintek.go.id/login/roles/1?login=adm",
                 data={'data[i_iduser]': i_iduser},
                 headers={"User-Agent": "Mozilla/5.0"},
                 timeout=30
@@ -64,7 +64,7 @@ async def login_pddikti(session):
                 'data[is_manual]': 'true'
             }
             setlogin_response = await session.post(
-                f"https://api-pddikti-admin.kemdikbud.go.id/login/setlogin/3/{id_organisasi}?id_pengguna={i_iduser}&id_unit={id_organisasi}&id_role=3",
+                f"https://api-pddikti-admin.kemdiktisaintek.go.id/login/setlogin/3/{id_organisasi}?id_pengguna={i_iduser}&id_unit={id_organisasi}&id_role=3",
                 data=setlogin_data,
                 headers={"User-Agent": "Mozilla/5.0"},
                 timeout=30
@@ -105,7 +105,7 @@ async def search_student(keyword, i_iduser, pm_token, session):
             'data[vld]': '0'
         }
         
-        search_url = f"https://api-pddikti-admin.kemdikbud.go.id/mahasiswa/result?limit=20&page=0&id_pengguna={i_iduser}&id_role=3&pm={pm_token}"
+        search_url = f"https://api-pddikti-admin.kemdiktisaintek.go.id/mahasiswa/result?limit=20&page=0&id_pengguna={i_iduser}&id_role=3&pm={pm_token}"
         logger.info(f"Sending search request to PDDikti API")
         
         # Use a longer timeout for search
@@ -148,14 +148,14 @@ async def get_student_detail(id_reg_pd, i_iduser, id_organisasi, pm_token, sessi
     try:
         logger.info(f"Getting details for student ID: {id_reg_pd}")
         # Dapatkan detail mahasiswa
-        detail_url = f"https://api-pddikti-admin.kemdikbud.go.id/mahasiswa/detail/{id_reg_pd}?id_pengguna={i_iduser}&id_unit={id_organisasi}&id_role=3&pm={pm_token}"
+        detail_url = f"https://api-pddikti-admin.kemdiktisaintek.go.id/mahasiswa/detail/{id_reg_pd}?id_pengguna={i_iduser}&id_unit={id_organisasi}&id_role=3&pm={pm_token}"
         
         try:
             response = await asyncio.wait_for(
                 session.get(detail_url, headers={
                     "User-Agent": "Mozilla/5.0",
-                    "Origin": "https://pddikti-admin.kemdikbud.go.id",
-                    "Referer": "https://pddikti-admin.kemdikbud.go.id/",
+                    "Origin": "https://pddikti-admin.kemdiktisaintek.go.id",
+                    "Referer": "https://pddikti-admin.kemdiktisaintek.go.id/",
                     "Content-Type": "application/json"
                 }),
                 timeout=240.0
